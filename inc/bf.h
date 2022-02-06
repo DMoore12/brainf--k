@@ -3,6 +3,7 @@
 
 // Includes
 #include "stdlib.h"
+#include "stdarg.h"
 #include "../inc/error.h"
 
 // Structs, enums, etc
@@ -31,6 +32,6 @@ typedef struct {
 
 // Prototypes
 list_t* buildQueue(const char* fname);
-int queueInterpret(list_t* list);
+int queueInterpret(list_t* list, int* ptr);
 
 #endif

@@ -1,5 +1,7 @@
 #include "../inc/bf.h"
 
+static void binDump(int* bins, size_t size, int ptr, int instance);
+static char removeNode(list_t* list);
 static int insertNode(list_t* list, char op);
 static void listWalk(list_t* list, const char* desc);
 static void memset(void* arr, unsigned char val, size_t len);
@@ -12,7 +14,7 @@ list_t* buildQueue(const char* fname) {
     list->head = NULL;
 
     if (list == NULL) {
-        throwError("could not alloc (root)", "bf.c", 12, -1);
+        throwError("could not alloc (root)", "bf.c", 17, -1);
         
         return NULL;
     }
@@ -26,9 +28,8 @@ list_t* buildQueue(const char* fname) {
     do {
         ret = fgetc(fptr);
         if (ret != EOF) {
-            fseek(fptr, 1, SEEK_CUR);
             if (!insertNode(list, ret)) {
-                throwError("could not alloc (node)", "bf.c", 28, -1);
+                throwError("could not alloc (node)", "bf.c", 32, -1);
                 fclose(fptr);
 
                 return NULL;
@@ -36,87 +37,128 @@ list_t* buildQueue(const char* fname) {
         }
     } while (ret != EOF);
 
+    fclose(fptr);
+
     return list;
 }
 
-int queueInterpret(list_t* list) {
-    instruction_t* inst = list->head;
+int queueInterpret(list_t* list, int* ptr) {
     int* bins = malloc(sizeof(int) * 30000);
-    int* bin_curr;
-    list_t next;
+    static int* bin_curr;
+    static int running;
+    static int instance;
     char in;
+    char op;
 
-    listWalk(list, "before");
+    if (!running) {
+        if (bins == NULL) {
+            throwError("could not alloc (bins)", "bf.c", 53, -1);
 
-    if (bins == NULL) {
-        throwError("could not alloc (bins)", "bf.c", 46, -1);
+            return 0;
+        }
 
-        return 0;
+        bin_curr = bins;
+        running = 1;
+    } else {
+        bins = ptr;
+        running++;
     }
 
-    bin_curr = bins;
+    while (list->head != NULL) {
+        // binDump(bins, 3, bin_curr - bins, instance);
+        op = removeNode(list);
+        switch (op) {
+            case OP_LB:
+            {
+                while (*bin_curr) {
+                    ++instance;
+                    if (!queueInterpret(list, bins)) {
+                        throwError("queueInterpret failed in nest", "bf.c", 76, -1);
 
-    while (inst != NULL) {
-        printf("%c", inst->op);
-        // switch (inst->op) {
-        //     case OP_LB:
-        //     {
-        //         next.head = inst->next_ptr;
-        //         if (!queueInterpret(&next)) {
-        //             throwError("queueInterpret failed in nest", "bf.c", 63, -1);
+                        return 0;
+                    }
+                }
 
-        //             return 0;
-        //         }
+                break;
+            }
+            case OP_RB:
+            {
+                --instance;
 
-        //         break;
-        //     }
-        //     case OP_RB:
-        //     {
-        //         return 1;
-        //     }
-        //     case OP_LEFT:
-        //     {
-        //         --bin_curr;
+                return 1;
+            }
+            case OP_LEFT:
+            {
+                --bin_curr;
 
-        //         break;
-        //     }
-        //     case OP_RIGHT:
-        //     {
-        //         ++bin_curr;
+                break;
+            }
+            case OP_RIGHT:
+            {
+                ++bin_curr;
 
-        //         break;
-        //     }
-        //     case OP_PLUS:
-        //     {
-        //         ++(*bin_curr);
+                break;
+            }
+            case OP_PLUS:
+            {
+                ++(*bin_curr);
 
-        //         break;
-        //     }
-        //     case OP_MINUS:
-        //     {
-        //         --(*bin_curr);
+                break;
+            }
+            case OP_MINUS:
+            {
+                --(*bin_curr);
 
-        //         break;
-        //     }
-        //     case OP_OUT:
-        //     {
-        //         printf("%d", *bin_curr);
+                break;
+            }
+            case OP_OUT:
+            {
+                printf("%c", *bin_curr);
 
-        //         break;
-        //     }
-        //     case OP_IN:
-        //     {
-        //         fgets(&in, 1, stdin);
-        //         *bin_curr = in;
+                break;
+            }
+            case OP_IN:
+            {
+                fgets(&in, 1, stdin);
+                *bin_curr = in;
 
-        //         break;
-        //     }
-        // }
-
-        inst = inst->next_ptr;
+                break;
+            }
+        }
     }
 
     return 1;
+}
+
+static void binDump(int* bins, size_t size, int ptr, int instance) {
+    size_t i;
+    static int iter;
+
+    printf("(%d:%d)%5d:", ptr, instance, iter++);
+
+    for (i = 0; i < size; i++) {
+        printf(" %2d", bins[i]);
+    }
+
+    printf("\n");
+}
+
+static char removeNode(list_t* list) {
+    char ret;
+    instruction_t* nh = list->head;
+
+    ret = nh->op;
+    
+    if (nh->next_ptr == NULL) {
+        list->head = NULL;
+        list->tail = NULL;
+        free(nh);
+    } else {
+        list->head = nh->next_ptr;
+        free(nh);
+    }
+
+    return ret;
 }
 
 static int insertNode(list_t* list, char op) {
@@ -125,7 +167,7 @@ static int insertNode(list_t* list, char op) {
     inst = malloc(sizeof(inst));
 
     if (inst == NULL) {
-        throwError("could not alloc (node)", "bf.c", 56, -1);
+        throwError("could not alloc (node)", "bf.c", 170, -1);
 
         return 0;
     }
@@ -153,8 +195,6 @@ static void listWalk(list_t* list, const char* desc) {
         printf("%c", inst->op);
         inst = inst->next_ptr;
     }
-
-    printf("\n\n");
 }
 
 static void memset(void* arr, unsigned char val, size_t len) {
