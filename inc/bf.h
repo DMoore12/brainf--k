@@ -6,17 +6,19 @@
 #include "../inc/error.h"
 
 // Structs, enums, etc
-typedef enum {
-    OP_PLUS,
-    OP_MINUS,
-    OP_RB,
-    OP_LB,
-    OP_RIGHT,
-    OP_LEFT
-} OP_t;
+enum {
+    OP_PLUS = '+',
+    OP_MINUS = '-',
+    OP_RB = ']',
+    OP_LB = '[',
+    OP_RIGHT = '>',
+    OP_LEFT = '<',
+    OP_OUT = '.',
+    OP_IN = ','
+};
 
 typedef struct inst_t {
-    OP_t           op;
+    char           op;
 
     struct inst_t *next_ptr;
     struct inst_t *last_ptr;

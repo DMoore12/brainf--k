@@ -40,12 +40,80 @@ list_t* buildQueue(const char* fname) {
 }
 
 int queueInterpret(list_t* list) {
+    instruction_t* inst = list->head;
     int* bins = malloc(sizeof(int) * 30000);
+    int* bin_curr;
+    list_t next;
+    char in;
+
+    listWalk(list, "before");
 
     if (bins == NULL) {
         throwError("could not alloc (bins)", "bf.c", 46, -1);
 
         return 0;
+    }
+
+    bin_curr = bins;
+
+    while (inst != NULL) {
+        printf("%c", inst->op);
+        // switch (inst->op) {
+        //     case OP_LB:
+        //     {
+        //         next.head = inst->next_ptr;
+        //         if (!queueInterpret(&next)) {
+        //             throwError("queueInterpret failed in nest", "bf.c", 63, -1);
+
+        //             return 0;
+        //         }
+
+        //         break;
+        //     }
+        //     case OP_RB:
+        //     {
+        //         return 1;
+        //     }
+        //     case OP_LEFT:
+        //     {
+        //         --bin_curr;
+
+        //         break;
+        //     }
+        //     case OP_RIGHT:
+        //     {
+        //         ++bin_curr;
+
+        //         break;
+        //     }
+        //     case OP_PLUS:
+        //     {
+        //         ++(*bin_curr);
+
+        //         break;
+        //     }
+        //     case OP_MINUS:
+        //     {
+        //         --(*bin_curr);
+
+        //         break;
+        //     }
+        //     case OP_OUT:
+        //     {
+        //         printf("%d", *bin_curr);
+
+        //         break;
+        //     }
+        //     case OP_IN:
+        //     {
+        //         fgets(&in, 1, stdin);
+        //         *bin_curr = in;
+
+        //         break;
+        //     }
+        // }
+
+        inst = inst->next_ptr;
     }
 
     return 1;
@@ -77,15 +145,16 @@ static int insertNode(list_t* list, char op) {
 }
 
 static void listWalk(list_t* list, const char* desc) {
-    int i = 0;
     instruction_t* inst = list->head;
 
     printf("Debug: %s\n", desc);
 
     while (inst != NULL) {
-        printf("Node %d: %c\n", i++, inst->op);
+        printf("%c", inst->op);
         inst = inst->next_ptr;
     }
+
+    printf("\n\n");
 }
 
 static void memset(void* arr, unsigned char val, size_t len) {

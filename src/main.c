@@ -7,7 +7,8 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    buildQueue(argv[1]);
+    list_t* list = buildQueue(argv[1]);
+    queueInterpret(list);
 
     return EXIT_SUCCESS;
 }
