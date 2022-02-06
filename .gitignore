@@ -1,0 +1,10 @@
+# MacOS Desktop Files
+.DS_Store
+.ds_store
+
+# VSCode
+.vscode/
+
+# Build output
+build/
+
