@@ -2,11 +2,14 @@
 
 static int insertNode(list_t* list, char op);
 static void listWalk(list_t* list, const char* desc);
+static void memset(void* arr, unsigned char val, size_t len);
 
 list_t* buildQueue(const char* fname) {
     list_t* list = malloc(sizeof(list_t));
     FILE* fptr = fopen(fname, "r");
     int ret = 0;
+
+    list->head = NULL;
 
     if (list == NULL) {
         throwError("could not alloc (root)", "bf.c", 12, -1);
@@ -33,9 +36,19 @@ list_t* buildQueue(const char* fname) {
         }
     } while (ret != EOF);
 
-    listWalk(list, "post file-read listWalk");
-
     return list;
+}
+
+int queueInterpret(list_t* list) {
+    int* bins = malloc(sizeof(int) * 30000);
+
+    if (bins == NULL) {
+        throwError("could not alloc (bins)", "bf.c", 46, -1);
+
+        return 0;
+    }
+
+    return 1;
 }
 
 static int insertNode(list_t* list, char op) {
@@ -44,7 +57,7 @@ static int insertNode(list_t* list, char op) {
     inst = malloc(sizeof(inst));
 
     if (inst == NULL) {
-        throwError("could not alloc (node)", "bf.c", 47, -1);
+        throwError("could not alloc (node)", "bf.c", 56, -1);
 
         return 0;
     }
@@ -56,6 +69,8 @@ static int insertNode(list_t* list, char op) {
     } else {
         inst->last_ptr = list->tail;
         inst->next_ptr = NULL;
+        list->tail->next_ptr = inst;
+        list->tail = inst;
     }
     
     return 1;
@@ -70,5 +85,14 @@ static void listWalk(list_t* list, const char* desc) {
     while (inst != NULL) {
         printf("Node %d: %c\n", i++, inst->op);
         inst = inst->next_ptr;
+    }
+}
+
+static void memset(void* arr, unsigned char val, size_t len) {
+    size_t i;
+    unsigned char* dest = arr;
+
+    for (i = 0; i < len; i++) {
+        dest[i] = val;
     }
 }

@@ -16,9 +16,10 @@ typedef enum {
 } OP_t;
 
 typedef struct inst_t {
-    struct isnt_t *next_ptr;
-    struct inst_t *last_ptr;
     OP_t           op;
+
+    struct inst_t *next_ptr;
+    struct inst_t *last_ptr;
 } instruction_t;
 
 typedef struct {
@@ -28,5 +29,6 @@ typedef struct {
 
 // Prototypes
 list_t* buildQueue(const char* fname);
+int queueInterpret(list_t* list);
 
 #endif
