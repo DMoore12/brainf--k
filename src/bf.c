@@ -1,6 +1,7 @@
 #include "../inc/bf.h"
 
-static void binDump(int* bins, size_t size, int ptr, int instance);
+static void binDump(int* bins, size_t size, int ptr, int instance, char op);
+static instruction_t* skipLoop(instruction_t* inst);
 static char removeNode(list_t* list);
 static int insertNode(list_t* list, char op);
 static void listWalk(list_t* list, const char* desc);
@@ -42,20 +43,58 @@ list_t* buildQueue(const char* fname) {
     return list;
 }
 
+int syntaxCheck(list_t* list) {
+    int bcnt = 0;
+    int err_left = 0;
+    instruction_t* inst = list->head;
+
+    while (inst != NULL) {
+        if (inst->op == OP_LB) {
+            ++bcnt;
+        } else if (inst->op == OP_RB) {
+            --bcnt;
+        }
+
+        if (bcnt < 0) {
+            err_left = 1;
+        }
+
+        inst = inst->next_ptr;
+    }
+
+    if (bcnt || err_left) {
+        if (bcnt > 0) {
+            throwError("lacking ']' for op '['", "bf.c", 61, -1);
+        } else {
+            throwError("excess ']' given", "bf.c", 63, -1);
+        }
+    }
+
+    return (bcnt == 0) ? 1 : 0;
+}
+
 int queueInterpret(list_t* list, int* ptr) {
-    int* bins = malloc(sizeof(int) * 30000);
+    int* bins;
+    instruction_t* inst = list->head;
+    list_t nl;
     static int* bin_curr;
     static int running;
     static int instance;
     char in;
     char op;
 
+    nl.tail = list->tail;
+
     if (!running) {
+        bins = malloc(sizeof(int) * 30000);
+        
         if (bins == NULL) {
             throwError("could not alloc (bins)", "bf.c", 53, -1);
 
             return 0;
         }
+
+        memset(bins, 0, sizeof(int) * 30000);
 
         bin_curr = bins;
         running = 1;
@@ -64,20 +103,22 @@ int queueInterpret(list_t* list, int* ptr) {
         running++;
     }
 
-    while (list->head != NULL) {
-        // binDump(bins, 3, bin_curr - bins, instance);
-        op = removeNode(list);
-        switch (op) {
+    while (inst != NULL) {
+        // binDump(bins, 6, bin_curr - bins, instance, inst->op);
+        switch (inst->op) {
             case OP_LB:
             {
+                nl.head = inst->next_ptr;
                 while (*bin_curr) {
                     ++instance;
-                    if (!queueInterpret(list, bins)) {
+                    if (!queueInterpret(&nl, bins)) {
                         throwError("queueInterpret failed in nest", "bf.c", 76, -1);
 
                         return 0;
                     }
                 }
+
+                inst = skipLoop(inst);
 
                 break;
             }
@@ -114,6 +155,7 @@ int queueInterpret(list_t* list, int* ptr) {
             case OP_OUT:
             {
                 printf("%c", *bin_curr);
+                
 
                 break;
             }
@@ -125,22 +167,31 @@ int queueInterpret(list_t* list, int* ptr) {
                 break;
             }
         }
+        inst = inst->next_ptr;
     }
 
     return 1;
 }
 
-static void binDump(int* bins, size_t size, int ptr, int instance) {
+static void binDump(int* bins, size_t size, int ptr, int instance, char op) {
     size_t i;
     static int iter;
 
-    printf("(%d:%d)%5d:", ptr, instance, iter++);
+    printf("(%d:%d)%5d %c:", ptr, instance, iter++, op);
 
     for (i = 0; i < size; i++) {
         printf(" %2d", bins[i]);
     }
 
     printf("\n");
+}
+
+static instruction_t* skipLoop(instruction_t* inst) {
+    while (inst->op != OP_RB) {
+        inst = inst->next_ptr;
+    }
+
+    return inst->next_ptr;
 }
 
 static char removeNode(list_t* list) {

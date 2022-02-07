@@ -8,6 +8,11 @@ int main(int argc, char **argv) {
     }
 
     list_t* list = buildQueue(argv[1]);
+    if (!syntaxCheck(list)) {
+        throwError("improper syntax given", argv[1], -1, -1);
+
+        return EXIT_FAILURE;
+    }
     queueInterpret(list, NULL);
 
     return EXIT_SUCCESS;

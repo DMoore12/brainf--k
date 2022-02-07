@@ -32,6 +32,7 @@ typedef struct {
 
 // Prototypes
 list_t* buildQueue(const char* fname);
+int syntaxCheck(list_t* list);
 int queueInterpret(list_t* list, int* ptr);
 
 #endif
