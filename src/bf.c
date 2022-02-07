@@ -104,7 +104,7 @@ int queueInterpret(list_t* list, int* ptr) {
     }
 
     while (inst != NULL) {
-        // binDump(bins, 6, bin_curr - bins, instance, inst->op);
+        // binDump(bins, 3, bin_curr - bins, instance, inst->op);
         switch (inst->op) {
             case OP_LB:
             {
@@ -155,7 +155,6 @@ int queueInterpret(list_t* list, int* ptr) {
             case OP_OUT:
             {
                 printf("%c", *bin_curr);
-                
 
                 break;
             }
@@ -191,7 +190,7 @@ static instruction_t* skipLoop(instruction_t* inst) {
         inst = inst->next_ptr;
     }
 
-    return inst->next_ptr;
+    return inst;
 }
 
 static char removeNode(list_t* list) {
