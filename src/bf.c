@@ -100,7 +100,6 @@ int queueInterpret(list_t* list, int* ptr) {
         running = 1;
     } else {
         bins = ptr;
-        running++;
     }
 
     while (inst != NULL) {
